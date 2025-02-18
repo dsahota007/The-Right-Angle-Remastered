@@ -1,37 +1,58 @@
-using UnityEngine;
+﻿using UnityEngine;
+using System.IO;
+
+[System.Serializable]
+public class SaveData
+{
+    public float playerX;
+    public float playerY;
+}
 
 public class SaveManager : MonoBehaviour
 {
     public static SaveManager instance;
-    private Vector2 defaultSpawnPoint = new Vector2(0, -3); // Default ground spawn position
+    private string savePath;
+
+    private Vector2 defaultSpawnPoint = new Vector2(0, -50); // ✅ Change this to your desired spawn
 
     private void Awake()
     {
-        // Singleton Pattern (Ensure only one instance)
         if (instance == null)
         {
             instance = this;
-            DontDestroyOnLoad(gameObject); // Keep SaveManager across scenes
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
             Destroy(gameObject);
         }
+
+        savePath = Application.persistentDataPath + "/savefile.json";
     }
 
     public void SavePlayerPosition(Vector2 position)
     {
-        PlayerPrefs.SetFloat("PlayerX", position.x);
-        PlayerPrefs.SetFloat("PlayerY", position.y);
-        PlayerPrefs.Save(); // Save data immediately
+        SaveData data = new SaveData { playerX = position.x, playerY = position.y };
+        string json = JsonUtility.ToJson(data);
+        File.WriteAllText(savePath, json);
     }
 
     public Vector2 LoadPlayerPosition()
     {
-        if (PlayerPrefs.HasKey("PlayerX") && PlayerPrefs.HasKey("PlayerY"))
+        if (File.Exists(savePath))
         {
-            return new Vector2(PlayerPrefs.GetFloat("PlayerX"), PlayerPrefs.GetFloat("PlayerY"));
+            string json = File.ReadAllText(savePath);
+            SaveData data = JsonUtility.FromJson<SaveData>(json);
+            return new Vector2(data.playerX, data.playerY);
         }
-        return defaultSpawnPoint; // If no save exists, return ground spawn
+        return defaultSpawnPoint; // ✅ If no save exists, return default spawn
+    }
+
+    public void ResetSave()
+    {
+        if (File.Exists(savePath))
+        {
+            File.Delete(savePath); // ✅ Delete the save file
+        }
     }
 }
