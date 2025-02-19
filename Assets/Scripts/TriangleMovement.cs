@@ -2,8 +2,10 @@
 
 public class SlingshotLaunch : MonoBehaviour
 {
-    public float maxPower = 15f;
-    public float powerMultiplier = 5f;
+    public float maxPower = 50f;
+    public float powerMultiplier = 8.5f;
+    public float movementThreshold = 0.2f; // ✅ Maximum velocity to allow launching
+
     private Vector2 startDragPosition;
     private Vector2 endDragPosition;
     private bool isDragging = false;
@@ -27,8 +29,11 @@ public class SlingshotLaunch : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            startDragPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            isDragging = true;
+            if (rb.velocity.magnitude <= movementThreshold) // ✅ Check if player is still
+            {
+                startDragPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                isDragging = true;
+            }
         }
         else if (Input.GetMouseButtonUp(0) && isDragging)
         {
@@ -40,6 +45,8 @@ public class SlingshotLaunch : MonoBehaviour
 
     void LaunchPlayer()
     {
+        if (rb.velocity.magnitude > movementThreshold) return; // ✅ Prevent launching if moving
+
         Vector2 launchDirection = startDragPosition - endDragPosition;
         float pullDistance = launchDirection.magnitude;
         float launchPower = Mathf.Clamp(pullDistance * powerMultiplier, 0, maxPower);

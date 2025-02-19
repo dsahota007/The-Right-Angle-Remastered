@@ -1,30 +1,45 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PauseMenu : MonoBehaviour
 {
     public GameObject pauseMenuUI;
     public GameObject pauseButton;
+    public Button musicToggleButton;
+
     private bool isPaused = false;
     private Rigidbody2D playerRb;
+
+    public GameObject snowEffect;
+    public Light2D playerLight;
+    public PlayerTrail playerTrailScript;
+    public LineRenderer playerLineRenderer;
+
+    private bool isSnowActive = true;
+    private bool isLightActive = true;
+    private bool isRedLight = false;
+    private bool isTrailActive = true;
 
     void Start()
     {
         playerRb = FindObjectOfType<Rigidbody2D>();
 
-        // 🔥 **Ensure Pause Menu is completely hidden at game start**
+        // 🔥 Ensure Pause Menu is hidden at start
         pauseMenuUI.SetActive(false);
         pauseButton.SetActive(true);
-
-        // 🔥 **Ensure game is running normally after loading from Main Menu**
         Time.timeScale = 1f;
+
+        // ✅ Update Button Text
+        UpdateMusicToggleText();
     }
 
     public void PauseGame()
     {
         if (playerRb != null)
         {
-            SaveManager.instance.SavePlayerPosition(playerRb.transform.position); // Auto-save on pause
+            SaveManager.instance.SavePlayerPosition(playerRb.transform.position);
         }
 
         pauseMenuUI.SetActive(true);
@@ -60,6 +75,78 @@ public class PauseMenu : MonoBehaviour
     public void LoadMainMenuBtn()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu");    //ignore thsi comment lol
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    // 🔥 **Toggle Snow Effect**
+    public void ToggleSnow()
+    {
+        isSnowActive = !isSnowActive;
+        if (snowEffect != null)
+        {
+            snowEffect.SetActive(isSnowActive);
+        }
+    }
+
+    // 🔥 **Toggle Light Mode**
+    public void ToggleLight()
+    {
+        isLightActive = !isLightActive;
+        if (playerLight != null)
+        {
+            playerLight.enabled = isLightActive;
+        }
+    }
+
+    public void ToggleRedLight()
+    {
+        if (playerLight == null) return;
+
+        playerLight.color = isRedLight ? Color.white : Color.red;
+        isRedLight = !isRedLight;
+    }
+
+    // 🔥 **Toggle Trail Effect On/Off**
+    public void ToggleTrail()
+    {
+        if (playerTrailScript == null || playerLineRenderer == null) return;
+
+        isTrailActive = !isTrailActive;
+        playerTrailScript.enabled = isTrailActive;
+
+        if (!isTrailActive)
+        {
+            playerLineRenderer.positionCount = 0; // ✅ Clears trail instantly
+        }
+    }
+
+    // 🔥 **Toggle Music Button**
+    public void ToggleMusic()
+    {
+        if (AudioManager.instance == null) return; // Ensure AudioManager exists
+
+        AudioSource audioSource = AudioManager.instance.GetComponent<AudioSource>();
+
+        if (audioSource != null)
+        {
+            audioSource.mute = !audioSource.mute; // Toggle mute
+
+            // Save state
+            PlayerPrefs.SetInt("MusicMuted", audioSource.mute ? 1 : 0);
+            PlayerPrefs.Save();
+        }
+    }
+
+
+    private void UpdateMusicToggleText()
+    {
+        if (musicToggleButton != null)
+        {
+            Text buttonText = musicToggleButton.GetComponentInChildren<Text>();
+            if (buttonText != null)
+            {
+                buttonText.text = AudioManager.instance.IsMusicMuted() ? "Music: OFF" : "Music: ON";
+            }
+        }
     }
 }

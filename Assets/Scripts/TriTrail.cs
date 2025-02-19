@@ -5,7 +5,7 @@ public class PlayerTrail : MonoBehaviour
 {
     public LineRenderer lineRenderer;  // ✅ Assign this in the Inspector
     public float minDistance = 0.1f;   // ✅ How far the player must move before adding a new point
-    public float trailLifetime = 1.5f; // ✅ How long before the trail disappears
+    public float trailLifetime = 2f; // ✅ How long before the trail disappears
 
     private List<Vector3> trailPoints = new List<Vector3>(); // Stores trail positions
     private List<float> pointTimes = new List<float>(); // Stores when each point was added
